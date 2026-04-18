@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(shopt -s dotglob)",
+      "Bash(ls:*)",
+      "Bash(npx prisma *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3001/health)",
+      "Bash(cat /c/demo/ai_da_challange/backend/services/*.js)",
+      "Bash(nerdctl compose *)",
+      "Read(//run/**)",
+      "Read(//var/run/**)",
+      "Read(//mnt/**)",
+      "Read(//var/**)",
+      "Bash(nerdctl --address /var/run/docker/containerd/containerd.sock info)",
+      "Bash(nerdctl --version)",
+      "Bash(nerdctl info *)",
+      "Bash(wsl --list --running)",
+      "Bash(nerdctl --namespace default info)",
+      "Bash(wsl -d rancher-desktop nerdctl info)",
+      "Bash(wsl -d rancher-desktop ls /run/)",
+      "Bash(wsl -d rancher-desktop ls /var/run/)",
+      "Bash(wsl -d rancher-desktop ls /run/containerd/)",
+      "Bash(cmd.exe /c \"wsl -d rancher-desktop ls /run/\")",
+      "Bash(cmd.exe /c \"wsl -d rancher-desktop ls /var/run/ | grep containerd\")",
+      "Bash(cmd.exe /c \"wsl -d rancher-desktop -- ls /run/\")",
+      "Bash(cmd.exe /c \"wsl -d rancher-desktop -- ls /var/run/\")",
+      "Bash(MSYS_NO_PATHCONV=1 wsl -d rancher-desktop -- ls /run/)",
+      "Bash(MSYS_NO_PATHCONV=1 wsl -d rancher-desktop -- ls /var/run/)",
+      "Bash(MSYS_NO_PATHCONV=1 wsl -d rancher-desktop -- ls /run/containerd/)",
+      "Bash(MSYS_NO_PATHCONV=1 wsl -d rancher-desktop -- ls /run/k3s/containerd/)",
+      "Bash(MSYS_NO_PATHCONV=1 wsl -d rancher-desktop -- find /run/containerd/ -name \"*.sock\")",
+      "Bash(MSYS_NO_PATHCONV=1 wsl -d rancher-desktop -- nerdctl --address /run/containerd/containerd.sock info)",
+      "Bash(npx tsc *)",
+      "Bash(npx ts-node-dev *)",
+      "Bash(curl -s http://localhost:4000/health)",
+      "Bash(npm create *)",
+      "Bash(npm install *)"
+    ]
+  }
+}
