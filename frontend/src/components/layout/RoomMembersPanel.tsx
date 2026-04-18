@@ -42,7 +42,7 @@ export function RoomMembersPanel({ roomId, ownerId }: RoomMembersPanelProps) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['rooms', roomId, 'members'] }),
   })
 
-  const myMembership = members?.find((m) => m.id === currentUser?.id)
+  const myMembership = members?.find((m) => m.userId === currentUser?.id)
   const isAdminOrOwner = currentUser?.id === ownerId || !!myMembership?.isAdmin
   const isOwner = currentUser?.id === ownerId
 
@@ -55,8 +55,8 @@ export function RoomMembersPanel({ roomId, ownerId }: RoomMembersPanelProps) {
   const sortMembers = (list: RoomMember[]) => {
     const order = { ONLINE: 0, AFK: 1, OFFLINE: 2 }
     return [...list].sort((a, b) => {
-      const pa = presences.get(a.id) ?? 'OFFLINE'
-      const pb = presences.get(b.id) ?? 'OFFLINE'
+      const pa = presences.get(a.userId) ?? 'OFFLINE'
+      const pb = presences.get(b.userId) ?? 'OFFLINE'
       if (order[pa] !== order[pb]) return order[pa] - order[pb]
       return a.username.localeCompare(b.username)
     })
@@ -76,8 +76,8 @@ export function RoomMembersPanel({ roomId, ownerId }: RoomMembersPanelProps) {
 
       <div className="flex-1 overflow-y-auto py-2">
         {sorted.map((member) => {
-          const presence = presences.get(member.id) ?? 'OFFLINE'
-          const isSelf = member.id === currentUser?.id
+          const presence = presences.get(member.userId) ?? 'OFFLINE'
+          const isSelf = member.userId === currentUser?.id
 
           return (
             <div
@@ -85,7 +85,7 @@ export function RoomMembersPanel({ roomId, ownerId }: RoomMembersPanelProps) {
               className="relative group"
             >
               <button
-                onClick={() => !isSelf && setContextMenu(contextMenu?.userId === member.id ? null : { userId: member.id, username: member.username })}
+                onClick={() => !isSelf && setContextMenu(contextMenu?.userId === member.userId ? null : { userId: member.userId, username: member.username })}
                 className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-[var(--bg-surface)] rounded-md text-left transition-colors"
               >
                 <div className="relative">
@@ -100,18 +100,18 @@ export function RoomMembersPanel({ roomId, ownerId }: RoomMembersPanelProps) {
                     {member.username}
                   </div>
                   {member.isAdmin && (
-                    <div className="text-xs text-blue-400">{member.id === ownerId ? 'owner' : 'admin'}</div>
+                    <div className="text-xs text-blue-400">{member.userId === ownerId ? 'owner' : 'admin'}</div>
                   )}
                 </div>
               </button>
 
-              {contextMenu?.userId === member.id && (
+              {contextMenu?.userId === member.userId && (
                 <div className="absolute right-2 top-8 z-30 w-44 bg-[var(--bg-surface)] border border-[var(--border)] rounded-md shadow-lg overflow-hidden">
-                  {friendIds.has(member.id) && (
+                  {friendIds.has(member.userId) && (
                     <button
                       onClick={() => {
-                        const dialogId = buildDialogId(currentUser!.id, member.id)
-                        setActiveChannel({ type: 'dialog', dialogId, userId: member.id })
+                        const dialogId = buildDialogId(currentUser!.id, member.userId)
+                        setActiveChannel({ type: 'dialog', dialogId, userId: member.userId })
                         setContextMenu(null)
                       }}
                       className="w-full px-3 py-2 text-xs text-left text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]"
@@ -119,25 +119,25 @@ export function RoomMembersPanel({ roomId, ownerId }: RoomMembersPanelProps) {
                       Send DM
                     </button>
                   )}
-                  {isAdminOrOwner && member.id !== ownerId && (
+                  {isAdminOrOwner && member.userId !== ownerId && (
                     <button
-                      onClick={() => { setBanTarget({ userId: member.id, username: member.username }); setContextMenu(null) }}
+                      onClick={() => { setBanTarget({ userId: member.userId, username: member.username }); setContextMenu(null) }}
                       className="w-full px-3 py-2 text-xs text-left text-red-400 hover:bg-[var(--bg-secondary)]"
                     >
                       Ban
                     </button>
                   )}
-                  {isOwner && member.id !== ownerId && (
+                  {isOwner && member.userId !== ownerId && (
                     member.isAdmin ? (
                       <button
-                        onClick={() => { demote.mutate(member.id); setContextMenu(null) }}
+                        onClick={() => { demote.mutate(member.userId); setContextMenu(null) }}
                         className="w-full px-3 py-2 text-xs text-left text-yellow-400 hover:bg-[var(--bg-secondary)]"
                       >
                         Demote Admin
                       </button>
                     ) : (
                       <button
-                        onClick={() => { promote.mutate(member.id); setContextMenu(null) }}
+                        onClick={() => { promote.mutate(member.userId); setContextMenu(null) }}
                         className="w-full px-3 py-2 text-xs text-left text-blue-400 hover:bg-[var(--bg-secondary)]"
                       >
                         Promote Admin

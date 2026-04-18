@@ -58,7 +58,7 @@ export function ManageAdminsModal({ roomId, ownerId, onClose }: ManageAdminsModa
 
         {members && (
           <div className="space-y-2 max-h-80 overflow-y-auto">
-            {members.filter(m => m.id !== ownerId).map((member) => (
+            {members.filter(m => m.userId !== ownerId).map((member) => (
               <div key={member.id} className="flex items-center justify-between p-2 rounded-md bg-[var(--bg-secondary)]">
                 <div className="flex items-center gap-2">
                   <Avatar username={member.username} size="sm" />
@@ -67,12 +67,12 @@ export function ManageAdminsModal({ roomId, ownerId, onClose }: ManageAdminsModa
                 </div>
                 {isOwner && (
                   member.isAdmin ? (
-                    <button onClick={() => demote.mutate(member.id)}
+                    <button onClick={() => demote.mutate(member.userId)}
                       className="text-xs text-yellow-400 hover:text-yellow-300">
                       Demote
                     </button>
                   ) : (
-                    <button onClick={() => promote.mutate(member.id)}
+                    <button onClick={() => promote.mutate(member.userId)}
                       className="text-xs text-blue-400 hover:text-blue-300">
                       Promote
                     </button>

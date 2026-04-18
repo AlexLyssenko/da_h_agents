@@ -26,6 +26,17 @@ export async function createRoom(
   return room;
 }
 
+export async function getMyRooms(userId: string) {
+  const memberships = await prisma.roomMember.findMany({
+    where: { userId },
+    include: {
+      room: { include: { _count: { select: { members: true } } } },
+    },
+    orderBy: { joinedAt: 'desc' },
+  });
+  return memberships.map((m) => m.room);
+}
+
 export async function listPublicRooms(
   userId: string,
   search?: string,

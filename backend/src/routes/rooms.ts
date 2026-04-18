@@ -41,6 +41,15 @@ router.post(
 );
 
 router.get(
+  '/me',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const rooms = await roomsService.getMyRooms(req.user!.id);
+    res.json({ rooms });
+  })
+);
+
+router.get(
   '/:id',
   requireAuth,
   asyncHandler(async (req, res) => {

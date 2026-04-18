@@ -43,6 +43,21 @@ export function AppShell() {
     }
   })
 
+  // Join/leave socket channels when active channel changes
+  useEffect(() => {
+    const socket = getSocket()
+    if (!socket || !activeChannel) return
+
+    if (activeChannel.type === 'room') {
+      socket.emit('room:join', { roomId: activeChannel.id })
+      return () => {
+        socket.emit('room:leave', { roomId: activeChannel.id })
+      }
+    } else if (activeChannel.type === 'dialog') {
+      socket.emit('dm:join', { dialogId: activeChannel.dialogId })
+    }
+  }, [activeChannel])
+
   // Clear unread when switching channels
   useEffect(() => {
     if (!activeChannel) return
@@ -66,7 +81,7 @@ export function AppShell() {
     enabled: !!activeRoom?.id,
   })
 
-  const myMembership = members?.find((m) => m.id === currentUser?.id)
+  const myMembership = members?.find((m) => m.userId === currentUser?.id)
   const isAdmin = !!(activeRoom && (currentUser?.id === activeRoom.ownerId || myMembership?.isAdmin))
 
   const handleSend = (content: string, attachmentIds: string[], replyToId?: string) => {

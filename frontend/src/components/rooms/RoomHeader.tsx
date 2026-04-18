@@ -36,7 +36,7 @@ export function RoomHeader({ room }: RoomHeaderProps) {
     queryFn: () => roomsApi.getMembers(room.id),
     enabled: !!room.id,
   })
-  const myMembership = members?.find((m) => m.id === currentUser?.id)
+  const myMembership = members?.find((m) => m.userId === currentUser?.id)
   const isAdmin = isOwner || !!myMembership?.isAdmin
 
   const deleteRoom = useMutation({

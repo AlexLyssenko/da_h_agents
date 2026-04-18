@@ -53,15 +53,15 @@ export function BannedUsersModal({ roomId, onClose }: BannedUsersModalProps) {
         {bans && bans.length > 0 && (
           <div className="space-y-2 max-h-80 overflow-y-auto">
             {bans.map((ban) => (
-              <div key={ban.userId} className="flex items-center justify-between p-3 rounded-md bg-[var(--bg-secondary)]">
+              <div key={ban.id} className="flex items-center justify-between p-3 rounded-md bg-[var(--bg-secondary)]">
                 <div>
-                  <div className="font-mono text-sm text-[var(--text-primary)]">{ban.username}</div>
+                  <div className="font-mono text-sm text-[var(--text-primary)]">{ban.user?.username ?? ban.userId}</div>
                   <div className="text-xs text-[var(--text-muted)]">
-                    Banned by {ban.bannedBy} · {formatRelative(ban.createdAt)}
+                    Banned · {formatRelative(ban.createdAt)}
                   </div>
                 </div>
                 <button
-                  onClick={() => unban.mutate(ban.userId)}
+                  onClick={() => unban.mutate(ban.user?.id ?? ban.userId)}
                   className="text-xs text-green-400 hover:text-green-300"
                 >
                   Unban

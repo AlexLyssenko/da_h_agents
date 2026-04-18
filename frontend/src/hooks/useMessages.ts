@@ -18,10 +18,11 @@ export function useMessages(roomId?: string, dialogId?: string) {
       if (!isRelevant) return
       queryClient.setQueryData(key, (old: { pages: { messages: Message[] }[]; pageParams: unknown[] } | undefined) => {
         if (!old) return old
+        // pages[0] is the newest batch (first load); append new messages there
         const pages = [...old.pages]
-        const lastPage = { ...pages[pages.length - 1] }
-        lastPage.messages = [...lastPage.messages, message]
-        pages[pages.length - 1] = lastPage
+        const newestPage = { ...pages[0] }
+        newestPage.messages = [...newestPage.messages, message]
+        pages[0] = newestPage
         return { ...old, pages }
       })
     }
