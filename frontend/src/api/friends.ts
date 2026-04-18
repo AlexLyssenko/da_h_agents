@@ -1,43 +1,63 @@
 import apiClient from './client'
 
-export interface Friend {
-  id: string
-  username: string
-  email: string
-  presence?: 'ONLINE' | 'AFK' | 'OFFLINE'
+// Shape returned by GET /api/friends for accepted friends
+export interface AcceptedFriend {
+  friendshipId: string
+  friend: { id: string; username: string }
+  presence?: string
 }
 
-export interface FriendRequest {
+// Shape returned by GET /api/friends for incoming pending requests
+export interface PendingIncoming {
+  friendshipId: string
+  from: { id: string; username: string }
+  createdAt: string
+}
+
+// Shape returned by GET /api/friends for outgoing pending requests
+export interface PendingOutgoing {
+  friendshipId: string
+  to: { id: string; username: string }
+  createdAt: string
+}
+
+// Full friendship record returned by POST /request and PUT /:id/accept
+export interface Friendship {
   id: string
   requesterId: string
   recipientId: string
   status: 'PENDING' | 'ACCEPTED'
   createdAt: string
-  requester: Friend
-  recipient: Friend
+  requester: { id: string; username: string }
+  recipient: { id: string; username: string }
 }
 
 export interface FriendsResponse {
-  friends: FriendRequest[]
-  pendingIncoming: FriendRequest[]
-  pendingOutgoing: FriendRequest[]
+  accepted: AcceptedFriend[]
+  pendingIncoming: PendingIncoming[]
+  pendingOutgoing: PendingOutgoing[]
 }
 
 export const friendsApi = {
-  list: () => apiClient.get<FriendsResponse>('/api/friends').then((r) => r.data),
+  list: (): Promise<FriendsResponse> =>
+    apiClient.get<FriendsResponse>('/api/friends').then((r) => r.data),
 
-  sendRequest: (username: string, message?: string) =>
-    apiClient.post<FriendRequest>('/api/friends/request', { username, message }).then((r) => r.data),
+  sendRequest: (username: string, message?: string): Promise<Friendship> =>
+    apiClient
+      .post<{ friendship: Friendship }>('/api/friends/request', { username, message })
+      .then((r) => r.data.friendship),
 
-  accept: (id: string) =>
-    apiClient.put<FriendRequest>(`/api/friends/${id}/accept`).then((r) => r.data),
+  accept: (id: string): Promise<Friendship> =>
+    apiClient
+      .put<{ friendship: Friendship }>(`/api/friends/${id}/accept`)
+      .then((r) => r.data.friendship),
 
-  remove: (id: string) =>
-    apiClient.delete(`/api/friends/${id}`).then((r) => r.data),
+  remove: (id: string): Promise<void> =>
+    apiClient.delete(`/api/friends/${id}`).then(() => undefined),
 
-  ban: (userId: string) =>
-    apiClient.post('/api/friends/ban', { userId }).then((r) => r.data),
+  ban: (userId: string): Promise<void> =>
+    apiClient.post('/api/friends/ban', { userId }).then(() => undefined),
 
-  unban: (userId: string) =>
-    apiClient.delete(`/api/friends/ban/${userId}`).then((r) => r.data),
+  unban: (userId: string): Promise<void> =>
+    apiClient.delete(`/api/friends/ban/${userId}`).then(() => undefined),
 }

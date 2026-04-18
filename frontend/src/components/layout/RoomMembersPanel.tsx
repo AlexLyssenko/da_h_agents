@@ -47,9 +47,7 @@ export function RoomMembersPanel({ roomId, ownerId }: RoomMembersPanelProps) {
   const isOwner = currentUser?.id === ownerId
 
   const friendIds = new Set(
-    friends?.friends.map((f) =>
-      f.requesterId === currentUser?.id ? f.recipientId : f.requesterId
-    ) ?? []
+    friends?.accepted.map((f) => f.friend.id) ?? []
   )
 
   const sortMembers = (list: RoomMember[]) => {

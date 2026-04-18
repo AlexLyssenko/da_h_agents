@@ -1,4 +1,4 @@
-import type { FriendRequest } from '../../api/friends'
+import type { AcceptedFriend } from '../../api/friends'
 import { Avatar } from '../common/Avatar'
 import { PresenceDot } from '../common/PresenceDot'
 import { Badge } from '../common/Badge'
@@ -9,7 +9,7 @@ import { buildDialogId } from '../../utils/dialogId'
 import clsx from 'clsx'
 
 interface ContactItemProps {
-  friendship: FriendRequest
+  friendship: AcceptedFriend
   isActive: boolean
   onClick: () => void
 }
@@ -18,10 +18,7 @@ export function ContactItem({ friendship, isActive, onClick }: ContactItemProps)
   const currentUser = useAuthStore((s) => s.user)
   const presences = usePresenceStore((s) => s.presences)
 
-  const friend = friendship.requesterId === currentUser?.id
-    ? friendship.recipient
-    : friendship.requester
-
+  const friend = friendship.friend
   const dialogId = currentUser ? buildDialogId(currentUser.id, friend.id) : ''
   const unreadCount = useUnreadStore((s) => s.counts.get(dialogId) ?? 0)
   const presence = presences.get(friend.id) ?? 'OFFLINE'

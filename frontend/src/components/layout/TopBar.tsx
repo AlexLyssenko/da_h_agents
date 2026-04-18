@@ -32,26 +32,11 @@ export function TopBar() {
   if (activeChannel?.type === 'room') {
     const room = rooms?.find((r) => r.id === activeChannel.id)
     channelName = room ? `# ${room.name}` : ''
-  } else if (activeChannel?.type === 'dialog') {
-    const currentUser = user
-    if (currentUser) {
-      const allFriends = [
-        ...(friends?.friends ?? []),
-        ...(friends?.pendingIncoming ?? []),
-        ...(friends?.pendingOutgoing ?? []),
-      ]
-      const f = allFriends.find((fr) => {
-        const dialogId = buildDialogId(
-          fr.requesterId === currentUser.id ? currentUser.id : fr.recipientId,
-          fr.requesterId === currentUser.id ? fr.recipientId : currentUser.id
-        )
-        return dialogId === (activeChannel as { dialogId: string }).dialogId
-      })
-      if (f) {
-        const friend = f.requesterId === currentUser.id ? f.recipient : f.requester
-        channelName = `@ ${friend.username}`
-      }
-    }
+  } else if (activeChannel?.type === 'dialog' && user) {
+    const f = friends?.accepted.find(
+      (fr) => buildDialogId(user.id, fr.friend.id) === activeChannel.dialogId
+    )
+    if (f) channelName = `@ ${f.friend.username}`
   }
 
   const handleLogout = async () => {
