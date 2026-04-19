@@ -25,7 +25,7 @@ router.get(
     const search = typeof req.query.search === 'string' ? req.query.search : undefined;
     const page = parseInt(String(req.query.page ?? '1'), 10);
     const limit = parseInt(String(req.query.limit ?? '20'), 10);
-    const rooms = await roomsService.listPublicRooms(req.user!.id, search, page, limit);
+    const rooms = await roomsService.listPublicRooms(req.user!.id, req.user!.isAdmin, search, page, limit);
     res.json({ rooms });
   })
 );
@@ -53,7 +53,7 @@ router.get(
   '/:id',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const room = await roomsService.getRoom(req.user!.id, req.params.id);
+    const room = await roomsService.getRoom(req.user!.id, req.user!.isAdmin, req.params.id);
     res.json({ room });
   })
 );
@@ -72,7 +72,7 @@ router.delete(
   '/:id',
   requireAuth,
   asyncHandler(async (req, res) => {
-    await roomsService.deleteRoom(req.user!.id, req.params.id);
+    await roomsService.deleteRoom(req.user!.id, req.user!.isAdmin, req.params.id);
     res.status(204).send();
   })
 );
@@ -109,7 +109,7 @@ router.get(
   '/:id/members',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const members = await roomsService.getMembers(req.user!.id, req.params.id);
+    const members = await roomsService.getMembers(req.user!.id, req.user!.isAdmin, req.params.id);
     res.json({ members });
   })
 );

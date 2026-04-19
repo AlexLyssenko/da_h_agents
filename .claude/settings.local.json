@@ -44,7 +44,8 @@
       "Bash(git -C \"C:\\\\demo\\\\da-hackaton\\\\da_h_agents\\\\.claude\\\\worktrees\\\\agent-a8d46969\" status)",
       "Bash(git -C \"C:\\\\demo\\\\da-hackaton\\\\da_h_agents\\\\.claude\\\\worktrees\\\\agent-ab0fc1e7\" status)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(xargs grep *)"
     ]
   }
 }

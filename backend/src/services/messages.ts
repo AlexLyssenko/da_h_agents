@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
 import { isMember, isBannedFromRoom } from './rooms';
-import { areFriends, isBanned } from './friends';
+import { isBanned } from './friends';
 
 const prisma = new PrismaClient();
 
@@ -76,9 +76,6 @@ export async function sendDMMessage(
   const [userA, userB] = validateDialogId(dialogId, authorId);
   const otherId = userA === authorId ? userB : userA;
 
-  const friends = await areFriends(authorId, otherId);
-  if (!friends) throw new AppError(403, 'Must be friends to send a DM');
-
   const banned = await isBanned(authorId, otherId);
   if (banned) throw new AppError(403, 'Cannot message this user');
 
@@ -103,15 +100,17 @@ export async function sendDMMessage(
 
 export async function getRoomMessages(
   userId: string,
+  isAdmin: boolean,
   roomId: string,
   cursor?: string,
   limit = 50
 ) {
-  const member = await isMember(userId, roomId);
-  if (!member) {
-    // check if room is public
-    const room = await prisma.room.findUnique({ where: { id: roomId } });
-    if (!room || !room.isPublic) throw new AppError(403, 'Access denied');
+  if (!isAdmin) {
+    const member = await isMember(userId, roomId);
+    if (!member) {
+      const room = await prisma.room.findUnique({ where: { id: roomId } });
+      if (!room || !room.isPublic) throw new AppError(403, 'Access denied');
+    }
   }
 
   const messages = await prisma.message.findMany({
@@ -167,11 +166,11 @@ export async function editMessage(userId: string, messageId: string, content: st
   return updated;
 }
 
-export async function deleteMessage(userId: string, messageId: string) {
+export async function deleteMessage(userId: string, isAdmin: boolean, messageId: string) {
   const msg = await prisma.message.findUnique({ where: { id: messageId } });
   if (!msg) throw new AppError(404, 'Message not found');
 
-  if (msg.authorId !== userId) {
+  if (!isAdmin && msg.authorId !== userId) {
     // Allow room admin/owner
     if (!msg.roomId) throw new AppError(403, 'Not authorized');
     const member = await prisma.roomMember.findUnique({
@@ -189,4 +188,51 @@ export async function deleteMessage(userId: string, messageId: string) {
   });
 
   return { messageId, roomId: msg.roomId, dialogId: msg.dialogId };
+}
+
+export async function listDMConversations(userId: string) {
+  // Find all distinct dialogIds where this user is a participant
+  const rows = await prisma.message.findMany({
+    where: {
+      dialogId: { not: null },
+      OR: [
+        { dialogId: { startsWith: `${userId}:` } },
+        { dialogId: { endsWith: `:${userId}` } },
+      ],
+    },
+    select: { dialogId: true },
+    distinct: ['dialogId'],
+  });
+
+  const conversations = await Promise.all(
+    rows.map(async ({ dialogId }) => {
+      const lastMsg = await prisma.message.findFirst({
+        where: { dialogId: dialogId! },
+        orderBy: { createdAt: 'desc' },
+        select: { content: true, createdAt: true },
+      });
+
+      const parts = dialogId!.split(':');
+      const otherId = parts[0] === userId ? parts[1] : parts[0];
+      const otherUser = await prisma.user.findUnique({
+        where: { id: otherId },
+        select: { id: true, username: true },
+      });
+
+      return {
+        dialogId: dialogId!,
+        userId: otherId,
+        username: otherUser?.username ?? 'Unknown',
+        lastMessage: lastMsg?.content ?? null,
+        lastMessageAt: lastMsg?.createdAt?.toISOString() ?? null,
+      };
+    })
+  );
+
+  // Sort by most recent message
+  return conversations.sort((a, b) => {
+    if (!a.lastMessageAt) return 1;
+    if (!b.lastMessageAt) return -1;
+    return new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime();
+  });
 }

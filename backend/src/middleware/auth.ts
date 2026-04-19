@@ -7,6 +7,7 @@ export interface AuthUser {
   username: string;
   email: string;
   sessionId: string;
+  isAdmin: boolean;
 }
 
 declare global {
@@ -36,7 +37,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
       res.status(401).json({ error: 'Invalid token type' });
       return;
     }
-    req.user = { id: payload.id, username: payload.username, email: payload.email, sessionId: payload.sessionId };
+    req.user = { id: payload.id, username: payload.username, email: payload.email, sessionId: payload.sessionId, isAdmin: payload.isAdmin ?? false };
     next();
   } catch {
     res.status(401).json({ error: 'Invalid or expired token' });
@@ -49,7 +50,7 @@ export function optionalAuth(req: Request, _res: Response, next: NextFunction): 
     try {
       const payload = jwt.verify(token, config.jwtAccessSecret) as AuthUser & { type: string };
       if (payload.type === 'access') {
-        req.user = { id: payload.id, username: payload.username, email: payload.email, sessionId: payload.sessionId };
+        req.user = { id: payload.id, username: payload.username, email: payload.email, sessionId: payload.sessionId, isAdmin: payload.isAdmin ?? false };
       }
     } catch {
       // ignore invalid tokens for optionalAuth

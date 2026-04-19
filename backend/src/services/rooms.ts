@@ -39,10 +39,21 @@ export async function getMyRooms(userId: string) {
 
 export async function listPublicRooms(
   userId: string,
+  isAdmin: boolean,
   search?: string,
   page = 1,
   limit = 20
 ) {
+  if (isAdmin) {
+    return prisma.room.findMany({
+      where: search ? { name: { contains: search, mode: 'insensitive' } } : {},
+      include: { _count: { select: { members: true } } },
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   const bannedRoomIds = await prisma.roomBan
     .findMany({ where: { userId }, select: { roomId: true } })
     .then((bans) => bans.map((b) => b.roomId));
@@ -61,24 +72,26 @@ export async function listPublicRooms(
   return rooms;
 }
 
-export async function getRoom(userId: string, roomId: string) {
+export async function getRoom(userId: string, isAdmin: boolean, roomId: string) {
   const room = await prisma.room.findUnique({
     where: { id: roomId },
     include: { _count: { select: { members: true } } },
   });
   if (!room) throw new AppError(404, 'Room not found');
 
-  if (!room.isPublic) {
-    const member = await prisma.roomMember.findUnique({
+  if (!isAdmin) {
+    if (!room.isPublic) {
+      const member = await prisma.roomMember.findUnique({
+        where: { roomId_userId: { roomId, userId } },
+      });
+      if (!member) throw new AppError(403, 'Access denied');
+    }
+
+    const ban = await prisma.roomBan.findUnique({
       where: { roomId_userId: { roomId, userId } },
     });
-    if (!member) throw new AppError(403, 'Access denied');
+    if (ban) throw new AppError(403, 'You are banned from this room');
   }
-
-  const ban = await prisma.roomBan.findUnique({
-    where: { roomId_userId: { roomId, userId } },
-  });
-  if (ban) throw new AppError(403, 'You are banned from this room');
 
   return room;
 }
@@ -140,10 +153,10 @@ export async function inviteToRoom(inviterId: string, roomId: string, targetUser
   return { roomId, targetUserId };
 }
 
-export async function deleteRoom(ownerId: string, roomId: string) {
+export async function deleteRoom(ownerId: string, isAdmin: boolean, roomId: string) {
   const room = await prisma.room.findUnique({ where: { id: roomId } });
   if (!room) throw new AppError(404, 'Room not found');
-  if (room.ownerId !== ownerId) throw new AppError(403, 'Only the owner can delete this room');
+  if (!isAdmin && room.ownerId !== ownerId) throw new AppError(403, 'Only the owner can delete this room');
 
   // Delete attachment files from disk
   const attachments = await prisma.attachment.findMany({
@@ -164,11 +177,13 @@ export async function deleteRoom(ownerId: string, roomId: string) {
   await prisma.room.delete({ where: { id: roomId } });
 }
 
-export async function getMembers(userId: string, roomId: string) {
-  const member = await prisma.roomMember.findUnique({
-    where: { roomId_userId: { roomId, userId } },
-  });
-  if (!member) throw new AppError(403, 'Not a member');
+export async function getMembers(userId: string, isAdmin: boolean, roomId: string) {
+  if (!isAdmin) {
+    const member = await prisma.roomMember.findUnique({
+      where: { roomId_userId: { roomId, userId } },
+    });
+    if (!member) throw new AppError(403, 'Not a member');
+  }
 
   const members = await prisma.roomMember.findMany({
     where: { roomId },

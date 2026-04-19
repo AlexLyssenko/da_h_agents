@@ -11,6 +11,7 @@ interface TokenPayload {
   username: string;
   email: string;
   sessionId: string;
+  isAdmin: boolean;
   type: 'access' | 'refresh' | 'reset';
 }
 
@@ -64,7 +65,7 @@ export async function login(email: string, password: string, userAgent?: string,
     },
   });
 
-  const base = { id: user.id, username: user.username, email: user.email, sessionId: session.id };
+  const base = { id: user.id, username: user.username, email: user.email, sessionId: session.id, isAdmin: user.isAdmin };
   const accessToken = signAccess(base);
   const refreshToken = signRefresh(base);
 
@@ -98,6 +99,7 @@ export async function refreshTokens(refreshToken: string) {
     username: session.user.username,
     email: session.user.email,
     sessionId: session.id,
+    isAdmin: session.user.isAdmin,
   };
   const newAccessToken = signAccess(base);
   const newRefreshToken = signRefresh(base);

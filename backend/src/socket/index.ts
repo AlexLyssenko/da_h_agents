@@ -21,6 +21,7 @@ interface AuthPayload {
   username: string;
   email: string;
   sessionId: string;
+  isAdmin?: boolean;
   type: string;
 }
 
@@ -41,6 +42,7 @@ export function initSocket(server: HttpServer): Server {
       if (payload.type !== 'access') return next(new Error('Invalid token type'));
       (socket as ExtSocket).userId = payload.id;
       (socket as ExtSocket).username = payload.username;
+      (socket as ExtSocket).isAdmin = payload.isAdmin ?? false;
       next();
     } catch {
       next(new Error('Invalid or expired token'));
@@ -50,6 +52,9 @@ export function initSocket(server: HttpServer): Server {
   io.on('connection', (socket: Socket) => {
     const ext = socket as ExtSocket;
     const userId = ext.userId;
+
+    // Join personal channel for DM delivery and notifications
+    socket.join(`user:${userId}`);
 
     // Register in presence map
     presenceService.addSocket(userId, socket.id).then((status) => {
@@ -106,9 +111,11 @@ export function initSocket(server: HttpServer): Server {
           );
           const dmChannel = `dm:${payload.dialogId}`;
           io.to(dmChannel).emit('message:new', { message: result.message });
+          // Deliver to both users' personal channels (covers offline-from-dm-channel case)
           io.to(`user:${userId}`).emit('message:new', { message: result.message });
+          io.to(`user:${result.otherId}`).emit('message:new', { message: result.message });
 
-          // Increment unread for the other user if not in the dm channel
+          // Increment unread for the other user and notify them
           notificationsService.incrementUnread(result.otherId, dmChannel);
           const unread = notificationsService.getUnreadMap(result.otherId);
           io.to(`user:${result.otherId}`).emit('notification:unread', unread);
@@ -134,7 +141,7 @@ export function initSocket(server: HttpServer): Server {
     // ---- Message delete ----
     socket.on('message:delete', async ({ messageId }: { messageId: string }) => {
       try {
-        const result = await messagesService.deleteMessage(userId, messageId);
+        const result = await messagesService.deleteMessage(userId, ext.isAdmin, messageId);
         const channel = result.roomId ? `room:${result.roomId}` : `dm:${result.dialogId}`;
         io.to(channel!).emit('message:deleted', {
           messageId,
@@ -211,6 +218,7 @@ export function initSocket(server: HttpServer): Server {
 interface ExtSocket extends Socket {
   userId: string;
   username: string;
+  isAdmin: boolean;
 }
 
 interface MessageSendPayload {

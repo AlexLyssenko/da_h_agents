@@ -4,19 +4,19 @@ import { useUiStore } from '../../store/uiStore'
 import { useUnreadStore } from '../../store/unreadStore'
 import { Badge } from '../common/Badge'
 import { Spinner } from '../common/Spinner'
-import { ContactList } from '../contacts/ContactList'
+import { DMList } from '../contacts/DMList'
 import { RoomCatalog } from '../rooms/RoomCatalog'
 import { CreateRoomModal } from '../rooms/CreateRoomModal'
-import { FriendRequestModal } from '../contacts/FriendRequestModal'
+import { NewDMModal } from '../contacts/NewDMModal'
 import clsx from 'clsx'
 
 export function Sidebar() {
   const { activeChannel, setActiveChannel } = useUiStore()
   const [roomsOpen, setRoomsOpen] = useState(true)
-  const [contactsOpen, setContactsOpen] = useState(true)
+  const [dmsOpen, setDmsOpen] = useState(true)
   const [showCatalog, setShowCatalog] = useState(false)
   const [showCreateRoom, setShowCreateRoom] = useState(false)
-  const [showAddFriend, setShowAddFriend] = useState(false)
+  const [showNewDM, setShowNewDM] = useState(false)
   const { data: rooms, isLoading: roomsLoading } = useRooms()
   const counts = useUnreadStore((s) => s.counts)
 
@@ -86,29 +86,29 @@ export function Sidebar() {
 
       <div className="h-px bg-[var(--border)] mx-3 my-1" />
 
-      {/* Contacts section */}
+      {/* Direct Messages section */}
       <div className="flex-1 overflow-hidden flex flex-col">
         <div className="flex items-center justify-between px-3 py-2 flex-shrink-0">
           <button
-            onClick={() => setContactsOpen((v) => !v)}
+            onClick={() => setDmsOpen((v) => !v)}
             className="flex items-center gap-1 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider hover:text-[var(--text-primary)] transition-colors"
           >
-            <span className={`transition-transform ${contactsOpen ? 'rotate-90' : ''}`}>▶</span>
-            Contacts
+            <span className={`transition-transform ${dmsOpen ? 'rotate-90' : ''}`}>▶</span>
+            Direct Messages
           </button>
           <button
-            onClick={() => setShowAddFriend(true)}
+            onClick={() => setShowNewDM(true)}
             className="p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] text-xs"
-            title="Add friend"
-            aria-label="Add friend"
+            title="New direct message"
+            aria-label="New direct message"
           >
             ＋
           </button>
         </div>
 
-        {contactsOpen && (
+        {dmsOpen && (
           <div className="flex-1 overflow-y-auto pb-2">
-            <ContactList />
+            <DMList />
           </div>
         )}
       </div>
@@ -116,7 +116,7 @@ export function Sidebar() {
       {/* Modals */}
       {showCatalog && <RoomCatalog onClose={() => setShowCatalog(false)} />}
       {showCreateRoom && <CreateRoomModal onClose={() => setShowCreateRoom(false)} />}
-      {showAddFriend && <FriendRequestModal onClose={() => setShowAddFriend(false)} />}
+      {showNewDM && <NewDMModal onClose={() => setShowNewDM(false)} />}
     </aside>
   )
 }

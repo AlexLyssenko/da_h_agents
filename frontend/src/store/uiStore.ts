@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 type ActiveChannel =
   | { type: 'room'; id: string }
-  | { type: 'dialog'; dialogId: string; userId: string }
+  | { type: 'dialog'; dialogId: string; userId: string; username: string }
   | null
 
 interface UiState {

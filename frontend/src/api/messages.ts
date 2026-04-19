@@ -31,7 +31,20 @@ export interface MessagesPage {
   nextCursor?: string
 }
 
+export interface Conversation {
+  dialogId: string
+  userId: string
+  username: string
+  lastMessage: string | null
+  lastMessageAt: string | null
+}
+
 export const messagesApi = {
+  getConversations: (): Promise<Conversation[]> =>
+    apiClient
+      .get<{ conversations: Conversation[] }>('/api/messages/conversations')
+      .then((r) => r.data.conversations),
+
   getRoomMessages: (roomId: string, cursor?: string, limit = 50) =>
     apiClient
       .get<MessagesPage>(`/api/rooms/${roomId}/messages`, { params: { cursor, limit } })

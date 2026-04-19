@@ -7,12 +7,21 @@ import * as messagesService from '../services/messages';
 const router = Router();
 
 router.get(
+  '/conversations',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const conversations = await messagesService.listDMConversations(req.user!.id);
+    res.json({ conversations });
+  })
+);
+
+router.get(
   '/rooms/:id/messages',
   requireAuth,
   asyncHandler(async (req, res) => {
     const cursor = typeof req.query.cursor === 'string' ? req.query.cursor : undefined;
     const limit = Math.min(parseInt(String(req.query.limit ?? '50'), 10), 100);
-    const messages = await messagesService.getRoomMessages(req.user!.id, req.params.id, cursor, limit);
+    const messages = await messagesService.getRoomMessages(req.user!.id, req.user!.isAdmin, req.params.id, cursor, limit);
     res.json({ messages });
   })
 );
@@ -42,7 +51,7 @@ router.delete(
   '/messages/:id',
   requireAuth,
   asyncHandler(async (req, res) => {
-    const result = await messagesService.deleteMessage(req.user!.id, req.params.id);
+    const result = await messagesService.deleteMessage(req.user!.id, req.user!.isAdmin, req.params.id);
     res.json(result);
   })
 );

@@ -28,7 +28,7 @@ export function ContactList() {
   const openDm = (f: AcceptedFriend) => {
     if (!currentUser) return
     const dialogId = buildDialogId(currentUser.id, f.friend.id)
-    setActiveChannel({ type: 'dialog', dialogId, userId: f.friend.id })
+    setActiveChannel({ type: 'dialog', dialogId, userId: f.friend.id, username: f.friend.username })
   }
 
   if (isLoading) return <div className="flex justify-center py-4"><Spinner size="sm" /></div>

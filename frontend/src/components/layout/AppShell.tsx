@@ -10,6 +10,7 @@ import { RoomMembersPanel } from './RoomMembersPanel'
 import { MessageList } from '../chat/MessageList'
 import { MessageInput } from '../chat/MessageInput'
 import { RoomHeader } from '../rooms/RoomHeader'
+import { DmHeader } from '../chat/DmHeader'
 import { EmptyState } from '../common/EmptyState'
 import type { Message } from '../../api/messages'
 import { useRooms } from '../../hooks/useRooms'
@@ -119,6 +120,9 @@ export function AppShell() {
         <div className="flex flex-1 flex-col overflow-hidden">
           {activeChannel?.type === 'room' && activeRoom && (
             <RoomHeader room={activeRoom} />
+          )}
+          {activeChannel?.type === 'dialog' && (
+            <DmHeader userId={activeChannel.userId} username={activeChannel.username} />
           )}
 
           {activeChannel ? (

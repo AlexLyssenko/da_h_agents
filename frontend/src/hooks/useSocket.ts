@@ -52,9 +52,16 @@ export function useSocket() {
       setPresence(userId, status)
     })
 
-    socket.on('notification:unread', ({ roomId, dialogId, count }) => {
-      const key = roomId ?? dialogId
-      if (key) setUnread(key, count)
+    socket.on('notification:unread', (unreadMap: Record<string, number>) => {
+      Object.entries(unreadMap).forEach(([key, count]) => {
+        setUnread(key, count)
+      })
+    })
+
+    socket.on('message:new', ({ message }: { message: { dialogId?: string } }) => {
+      if (message.dialogId) {
+        queryClient.invalidateQueries({ queryKey: ['conversations'] })
+      }
     })
 
     socket.on('room:updated', () => {
@@ -77,6 +84,7 @@ export function useSocket() {
     return () => {
       socket.off('presence:update')
       socket.off('notification:unread')
+      socket.off('message:new')
       socket.off('room:updated')
       socket.off('friend:request')
       socket.off('friend:accepted')
