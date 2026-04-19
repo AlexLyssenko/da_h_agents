@@ -38,7 +38,13 @@
       "Bash(npm install *)",
       "Bash(docker compose build *)",
       "Bash(docker compose up *)",
-      "Bash(docker compose *)"
+      "Bash(docker compose *)",
+      "Bash(wc -l /c/demo/da-hackaton/da_h_agents/backend/src/routes/*.ts /c/demo/da-hackaton/da_h_agents/backend/src/services/*.ts /c/demo/da-hackaton/da_h_agents/backend/src/middleware/*.ts)",
+      "Bash(git merge *)",
+      "Bash(git -C \"C:\\\\demo\\\\da-hackaton\\\\da_h_agents\\\\.claude\\\\worktrees\\\\agent-a8d46969\" status)",
+      "Bash(git -C \"C:\\\\demo\\\\da-hackaton\\\\da_h_agents\\\\.claude\\\\worktrees\\\\agent-ab0fc1e7\" status)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }
