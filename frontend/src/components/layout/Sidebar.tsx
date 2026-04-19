@@ -4,19 +4,17 @@ import { useUiStore } from '../../store/uiStore'
 import { useUnreadStore } from '../../store/unreadStore'
 import { Badge } from '../common/Badge'
 import { Spinner } from '../common/Spinner'
-import { DMList } from '../contacts/DMList'
+import { PeoplePanel } from '../contacts/PeoplePanel'
 import { RoomCatalog } from '../rooms/RoomCatalog'
 import { CreateRoomModal } from '../rooms/CreateRoomModal'
-import { NewDMModal } from '../contacts/NewDMModal'
 import clsx from 'clsx'
 
 export function Sidebar() {
   const { activeChannel, setActiveChannel } = useUiStore()
   const [roomsOpen, setRoomsOpen] = useState(true)
-  const [dmsOpen, setDmsOpen] = useState(true)
+  const [peopleOpen, setPeopleOpen] = useState(true)
   const [showCatalog, setShowCatalog] = useState(false)
   const [showCreateRoom, setShowCreateRoom] = useState(false)
-  const [showNewDM, setShowNewDM] = useState(false)
   const { data: rooms, isLoading: roomsLoading } = useRooms()
   const counts = useUnreadStore((s) => s.counts)
 
@@ -86,29 +84,21 @@ export function Sidebar() {
 
       <div className="h-px bg-[var(--border)] mx-3 my-1" />
 
-      {/* Direct Messages section */}
+      {/* People / Direct Messages section */}
       <div className="flex-1 overflow-hidden flex flex-col">
         <div className="flex items-center justify-between px-3 py-2 flex-shrink-0">
           <button
-            onClick={() => setDmsOpen((v) => !v)}
+            onClick={() => setPeopleOpen((v) => !v)}
             className="flex items-center gap-1 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider hover:text-[var(--text-primary)] transition-colors"
           >
-            <span className={`transition-transform ${dmsOpen ? 'rotate-90' : ''}`}>▶</span>
-            Direct Messages
-          </button>
-          <button
-            onClick={() => setShowNewDM(true)}
-            className="p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] text-xs"
-            title="New direct message"
-            aria-label="New direct message"
-          >
-            ＋
+            <span className={`transition-transform ${peopleOpen ? 'rotate-90' : ''}`}>▶</span>
+            People
           </button>
         </div>
 
-        {dmsOpen && (
+        {peopleOpen && (
           <div className="flex-1 overflow-y-auto pb-2">
-            <DMList />
+            <PeoplePanel />
           </div>
         )}
       </div>
@@ -116,7 +106,6 @@ export function Sidebar() {
       {/* Modals */}
       {showCatalog && <RoomCatalog onClose={() => setShowCatalog(false)} />}
       {showCreateRoom && <CreateRoomModal onClose={() => setShowCreateRoom(false)} />}
-      {showNewDM && <NewDMModal onClose={() => setShowNewDM(false)} />}
     </aside>
   )
 }

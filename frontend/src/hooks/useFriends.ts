@@ -12,9 +12,11 @@ export function useFriends() {
     const handler = () => queryClient.invalidateQueries({ queryKey: ['friends'] })
     socket.on('friend:request', handler)
     socket.on('friend:accepted', handler)
+    socket.on('friend:removed', handler)
     return () => {
       socket.off('friend:request', handler)
       socket.off('friend:accepted', handler)
+      socket.off('friend:removed', handler)
     }
   }, [queryClient])
 

@@ -35,7 +35,7 @@ export async function sendFriendRequest(requesterId: string, username: string, _
   }
 
   const friendship = await prisma.friendship.create({
-    data: { requesterId, recipientId: recipient.id },
+    data: { requesterId, recipientId: recipient.id, status: 'ACCEPTED' },
     include: {
       requester: { select: { id: true, username: true } },
       recipient: { select: { id: true, username: true } },
