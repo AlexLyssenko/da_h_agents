@@ -111,8 +111,7 @@ export function initSocket(server: HttpServer): Server {
           );
           const dmChannel = `dm:${payload.dialogId}`;
           io.to(dmChannel).emit('message:new', { message: result.message });
-          // Deliver to both users' personal channels (covers offline-from-dm-channel case)
-          io.to(`user:${userId}`).emit('message:new', { message: result.message });
+          // Also deliver to recipient's personal channel for when they don't have the DM open
           io.to(`user:${result.otherId}`).emit('message:new', { message: result.message });
 
           // Increment unread for the other user and notify them

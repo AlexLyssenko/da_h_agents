@@ -18,6 +18,9 @@ export function useMessages(roomId?: string, dialogId?: string) {
       if (!isRelevant) return
       queryClient.setQueryData(key, (old: { pages: { messages: Message[] }[]; pageParams: unknown[] } | undefined) => {
         if (!old) return old
+        // Deduplicate: skip if message already in cache (can arrive via multiple channels)
+        const alreadyExists = old.pages.some((page) => page.messages.some((m) => m.id === message.id))
+        if (alreadyExists) return old
         // pages[0] is the newest batch (first load); append new messages there
         const pages = [...old.pages]
         const newestPage = { ...pages[0] }
