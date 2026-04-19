@@ -28,6 +28,12 @@ export function PeoplePanel() {
   const accepted = friendsData?.accepted ?? []
   const acceptedIds = new Set(accepted.map((f) => f.friend.id))
 
+  const { data: bannedUsers, isLoading: bannedLoading } = useQuery({
+    queryKey: ['ban', 'list'],
+    queryFn: friendsApi.listBanned,
+  })
+  const bannedIds = new Set(bannedUsers?.map((b) => b.userId) ?? [])
+
   const { data: searchResults, isLoading: searchLoading } = useQuery<UserSummary[]>({
     queryKey: ['users', 'search', query],
     queryFn: () => usersApi.search(query),
@@ -49,6 +55,25 @@ export function PeoplePanel() {
     onError: () => toast.error('Could not remove contact'),
   })
 
+  const banMutation = useMutation({
+    mutationFn: (userId: string) => friendsApi.ban(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ban'] })
+      queryClient.invalidateQueries({ queryKey: ['friends'] })
+      toast.success('User blocked')
+    },
+    onError: () => toast.error('Could not block user'),
+  })
+
+  const unbanMutation = useMutation({
+    mutationFn: (userId: string) => friendsApi.unban(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ban'] })
+      toast.success('User unblocked')
+    },
+    onError: () => toast.error('Could not unblock user'),
+  })
+
   const openDm = (userId: string, username: string) => {
     if (!currentUser) return
     const dialogId = buildDialogId(currentUser.id, userId)
@@ -57,6 +82,8 @@ export function PeoplePanel() {
   }
 
   const isSearching = query.trim().length > 0
+  // Contacts = accepted friends who are NOT blocked by me
+  const contacts = accepted.filter((f) => !bannedIds.has(f.friend.id))
 
   return (
     <div className="flex flex-col gap-1">
@@ -76,21 +103,21 @@ export function PeoplePanel() {
           {searchLoading && (
             <div className="flex justify-center py-2"><Spinner size="sm" /></div>
           )}
-          {!searchLoading && searchResults?.length === 0 && (
+          {!searchLoading && (!searchResults || searchResults.length === 0) && (
             <p className="text-xs text-[var(--text-muted)] px-3 py-2">No users found</p>
           )}
           {searchResults?.map((user) => {
+            if (user.id === currentUser?.id) return null
             const isContact = acceptedIds.has(user.id)
-            const isSelf = user.id === currentUser?.id
-            if (isSelf) return null
+            const isBlocked = bannedIds.has(user.id)
+
             return (
-              <div
-                key={user.id}
-                className="flex items-center gap-2 px-3 py-1.5 hover:bg-[var(--bg-surface)] rounded-md"
-              >
+              <div key={user.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-[var(--bg-surface)] rounded-md">
                 <Avatar username={user.username} size="sm" />
                 <span className="text-sm text-[var(--text-primary)] flex-1 truncate">{user.username}</span>
-                {isContact ? (
+                {isBlocked ? (
+                  <span className="text-xs text-red-400 shrink-0">Blocked</span>
+                ) : isContact ? (
                   <button
                     onClick={() => openDm(user.id, user.username)}
                     className="px-2 py-0.5 text-xs bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 rounded transition-colors shrink-0"
@@ -101,7 +128,7 @@ export function PeoplePanel() {
                   <button
                     onClick={() => addContact.mutate(user.username)}
                     disabled={addContact.isPending}
-                    className="px-2 py-0.5 text-xs bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border)] rounded transition-colors shrink-0disabled:opacity-50"
+                    className="px-2 py-0.5 text-xs bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border)] rounded transition-colors shrink-0 disabled:opacity-50"
                   >
                     + Add
                   </button>
@@ -115,20 +142,19 @@ export function PeoplePanel() {
       {/* Contacts list (when not searching) */}
       {!isSearching && (
         <>
-          {friendsLoading && (
+          {(friendsLoading || bannedLoading) && (
             <div className="flex justify-center py-3"><Spinner size="sm" /></div>
           )}
 
-          {!friendsLoading && accepted.length === 0 && (
+          {!friendsLoading && !bannedLoading && contacts.length === 0 && (bannedUsers?.length ?? 0) === 0 && (
             <p className="text-xs text-[var(--text-muted)] px-3 py-2">
               No contacts yet — search above to add people.
             </p>
           )}
 
-          {accepted.map((f) => {
+          {contacts.map((f) => {
             const dialogId = currentUser ? buildDialogId(currentUser.id, f.friend.id) : ''
-            const isActive =
-              activeChannel?.type === 'dialog' && activeChannel.dialogId === dialogId
+            const isActive = activeChannel?.type === 'dialog' && activeChannel.dialogId === dialogId
             const presence = getPresence(f.friend.id)
             const unread = counts.get(`dm:${dialogId}`) ?? 0
 
@@ -150,34 +176,65 @@ export function PeoplePanel() {
                     className="absolute -bottom-0.5 -right-0.5 border-2 border-[var(--bg-secondary)] !w-2.5 !h-2.5"
                   />
                 </div>
-
-                <span className={clsx(
-                  'text-sm truncate flex-1',
-                  isActive ? 'font-medium text-[var(--text-primary)]' : ''
-                )}>
+                <span className={clsx('text-sm truncate flex-1', isActive ? 'font-medium text-[var(--text-primary)]' : '')}>
                   {f.friend.username}
                 </span>
-
                 {unread > 0 && (
                   <span className="group-hover:hidden">
                     <Badge count={unread} />
                   </span>
                 )}
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    removeContact.mutate(f.friendshipId)
-                  }}
-                  className="hidden group-hover:flex items-center justify-center w-4 h-4 text-[var(--text-muted)] hover:text-red-400 shrink-0 transition-colors"
-                  aria-label={`Remove ${f.friend.username}`}
-                  title="Remove contact"
-                >
-                  ✕
-                </button>
+                {/* Actions revealed on hover */}
+                <div className="hidden group-hover:flex items-center gap-0.5 shrink-0">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); removeContact.mutate(f.friendshipId) }}
+                    className="flex items-center justify-center w-5 h-5 rounded text-[var(--text-muted)] hover:text-red-400 transition-colors"
+                    aria-label={`Remove ${f.friend.username}`}
+                    title="Remove contact"
+                  >
+                    ✕
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (confirm(`Block ${f.friend.username}? They won't be able to message you and the contact will be removed.`)) {
+                        banMutation.mutate(f.friend.id)
+                      }
+                    }}
+                    disabled={banMutation.isPending}
+                    className="flex items-center justify-center w-5 h-5 rounded text-[var(--text-muted)] hover:text-red-500 transition-colors disabled:opacity-50"
+                    aria-label={`Block ${f.friend.username}`}
+                    title="Block user"
+                  >
+                    🚫
+                  </button>
+                </div>
               </div>
             )
           })}
+
+          {/* Blocked users section */}
+          {(bannedUsers?.length ?? 0) > 0 && (
+            <div className="mt-3">
+              <div className="px-3 py-1 text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">
+                Blocked ({bannedUsers!.length})
+              </div>
+              {bannedUsers!.map((b) => (
+                <div key={b.userId} className="group flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-[var(--bg-surface)] opacity-60 hover:opacity-100 transition-all">
+                  <Avatar username={b.username} size="sm" />
+                  <span className="text-sm text-[var(--text-muted)] flex-1 truncate">{b.username}</span>
+                  <button
+                    onClick={() => unbanMutation.mutate(b.userId)}
+                    disabled={unbanMutation.isPending}
+                    className="hidden group-hover:block px-2 py-0.5 text-xs text-blue-400 hover:text-blue-300 border border-blue-400/30 rounded transition-colors disabled:opacity-50 shrink-0"
+                    title="Unblock"
+                  >
+                    Unblock
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
     </div>

@@ -77,6 +77,15 @@ export function useSocket() {
       queryClient.invalidateQueries({ queryKey: ['friends'] })
     })
 
+    socket.on('user:banned', () => {
+      queryClient.invalidateQueries({ queryKey: ['ban'] })
+      queryClient.invalidateQueries({ queryKey: ['friends'] })
+    })
+
+    socket.on('user:unbanned', () => {
+      queryClient.invalidateQueries({ queryKey: ['ban'] })
+    })
+
     socket.on('error', ({ message }: { code: string; message: string }) => {
       toast.error(message)
     })
@@ -88,6 +97,8 @@ export function useSocket() {
       socket.off('room:updated')
       socket.off('friend:request')
       socket.off('friend:accepted')
+      socket.off('user:banned')
+      socket.off('user:unbanned')
       socket.off('error')
       idleEvents.forEach((e) => document.removeEventListener(e, resetIdle))
       if (heartbeatRef.current) clearInterval(heartbeatRef.current)

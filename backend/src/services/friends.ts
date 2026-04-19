@@ -104,6 +104,27 @@ export async function listFriends(userId: string) {
   return { accepted, pendingIncoming, pendingOutgoing };
 }
 
+export async function listBanned(userId: string) {
+  const bans = await prisma.userBan.findMany({
+    where: { bannerId: userId },
+    include: { banned: { select: { id: true, username: true } } },
+    orderBy: { createdAt: 'desc' },
+  });
+  return bans.map((b) => ({ userId: b.bannedId, username: b.banned.username, bannedAt: b.createdAt }));
+}
+
+export async function checkBanStatus(userId: string, otherUserId: string) {
+  const [byMe, byThem] = await Promise.all([
+    prisma.userBan.findUnique({
+      where: { bannerId_bannedId: { bannerId: userId, bannedId: otherUserId } },
+    }),
+    prisma.userBan.findUnique({
+      where: { bannerId_bannedId: { bannerId: otherUserId, bannedId: userId } },
+    }),
+  ]);
+  return { isBannedByMe: !!byMe, isBannedByThem: !!byThem };
+}
+
 export async function banUser(bannerId: string, bannedId: string) {
   if (bannerId === bannedId) throw new AppError(400, 'Cannot ban yourself');
 

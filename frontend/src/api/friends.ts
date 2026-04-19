@@ -38,6 +38,17 @@ export interface FriendsResponse {
   pendingOutgoing: PendingOutgoing[]
 }
 
+export interface BannedUser {
+  userId: string
+  username: string
+  bannedAt: string
+}
+
+export interface BanStatus {
+  isBannedByMe: boolean
+  isBannedByThem: boolean
+}
+
 export const friendsApi = {
   list: (): Promise<FriendsResponse> =>
     apiClient.get<FriendsResponse>('/api/friends').then((r) => r.data),
@@ -54,6 +65,12 @@ export const friendsApi = {
 
   remove: (id: string): Promise<void> =>
     apiClient.delete(`/api/friends/${id}`).then(() => undefined),
+
+  listBanned: (): Promise<BannedUser[]> =>
+    apiClient.get<{ banned: BannedUser[] }>('/api/friends/ban').then((r) => r.data.banned),
+
+  checkBan: (userId: string): Promise<BanStatus> =>
+    apiClient.get<BanStatus>(`/api/friends/ban/check/${userId}`).then((r) => r.data),
 
   ban: (userId: string): Promise<void> =>
     apiClient.post('/api/friends/ban', { userId }).then(() => undefined),

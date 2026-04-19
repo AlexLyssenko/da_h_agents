@@ -24,7 +24,6 @@ router.post(
       .object({ username: z.string().min(1), message: z.string().optional() })
       .parse(req.body);
     const result = await friendsService.sendFriendRequest(req.user!.id, body.username, body.message);
-    // Notify both users so their contacts lists update instantly
     const io = getIo();
     io.to(`user:${req.user!.id}`).emit('friend:accepted', { friendship: result.friendship });
     io.to(`user:${result.recipientId}`).emit('friend:accepted', { friendship: result.friendship });
@@ -54,12 +53,38 @@ router.delete(
   })
 );
 
+// List users I have banned
+router.get(
+  '/ban',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const banned = await friendsService.listBanned(req.user!.id);
+    res.json({ banned });
+  })
+);
+
+// Check ban status between current user and another user
+router.get(
+  '/ban/check/:userId',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const status = await friendsService.checkBanStatus(req.user!.id, req.params.userId);
+    res.json(status);
+  })
+);
+
 router.post(
   '/ban',
   requireAuth,
   asyncHandler(async (req, res) => {
     const body = z.object({ userId: z.string().min(1) }).parse(req.body);
     await friendsService.banUser(req.user!.id, body.userId);
+    const io = getIo();
+    // Tell the banned user their access is revoked
+    io.to(`user:${body.userId}`).emit('user:banned', { bannerId: req.user!.id });
+    // Remove each other from contacts lists
+    io.to(`user:${req.user!.id}`).emit('friend:removed', {});
+    io.to(`user:${body.userId}`).emit('friend:removed', {});
     res.status(204).send();
   })
 );
@@ -69,6 +94,8 @@ router.delete(
   requireAuth,
   asyncHandler(async (req, res) => {
     await friendsService.unbanUser(req.user!.id, req.params.userId);
+    // Notify unbanned user
+    getIo().to(`user:${req.params.userId}`).emit('user:unbanned', { bannerId: req.user!.id });
     res.status(204).send();
   })
 );

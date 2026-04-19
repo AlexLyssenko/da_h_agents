@@ -13,6 +13,7 @@ async function main() {
       email: 'admin@chat.local',
       username: 'admin',
       passwordHash,
+      isAdmin: true,
       presence: { create: { status: PresenceStatus.OFFLINE } },
     },
   });

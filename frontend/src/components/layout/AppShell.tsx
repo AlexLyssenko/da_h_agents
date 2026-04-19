@@ -17,6 +17,7 @@ import { useRooms } from '../../hooks/useRooms'
 import { useFriends } from '../../hooks/useFriends'
 import { useQuery } from '@tanstack/react-query'
 import { roomsApi } from '../../api/rooms'
+import { friendsApi } from '../../api/friends'
 import type { RoomMember } from '../../api/rooms'
 import clsx from 'clsx'
 
@@ -85,6 +86,20 @@ export function AppShell() {
   const myMembership = members?.find((m) => m.userId === currentUser?.id)
   const isAdmin = !!(activeRoom && (currentUser?.id === activeRoom.ownerId || myMembership?.isAdmin))
 
+  // Ban status for active DM
+  const dialogUserId = activeChannel?.type === 'dialog' ? activeChannel.userId : undefined
+  const { data: banStatus } = useQuery({
+    queryKey: ['ban', 'check', dialogUserId],
+    queryFn: () => friendsApi.checkBan(dialogUserId!),
+    enabled: !!dialogUserId,
+  })
+  const dmBlocked = !!(banStatus?.isBannedByMe || banStatus?.isBannedByThem)
+  const dmBlockedMessage = banStatus?.isBannedByMe
+    ? 'You have blocked this user. Unblock them to send messages.'
+    : banStatus?.isBannedByThem
+      ? 'You cannot send messages to this user.'
+      : undefined
+
   const handleSend = (content: string, attachmentIds: string[], replyToId?: string) => {
     const socket = getSocket()
     if (!socket) return
@@ -139,6 +154,8 @@ export function AppShell() {
                 replyTo={replyTo}
                 onCancelReply={() => setReplyTo(null)}
                 onSend={handleSend}
+                disabled={activeChannel.type === 'dialog' ? dmBlocked : undefined}
+                disabledMessage={activeChannel.type === 'dialog' ? dmBlockedMessage : undefined}
               />
             </>
           ) : (
