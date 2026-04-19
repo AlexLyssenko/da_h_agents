@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { AppError } from '../middleware/errorHandler';
 import { isMember, isBannedFromRoom } from './rooms';
-import { areFriends, isBanned } from './friends';
+import { isBanned } from './friends';
 
 const prisma = new PrismaClient();
 

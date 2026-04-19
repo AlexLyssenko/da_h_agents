@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 import { AppError } from '../middleware/errorHandler';
-import { getPresence, getMultiplePresence } from './presence';
+import { getMultiplePresence } from './presence';
 
 const prisma = new PrismaClient();
 

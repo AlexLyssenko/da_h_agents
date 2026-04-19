@@ -6,6 +6,8 @@ import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { ChatPage } from './pages/ChatPage'
 import { AdminPage } from './pages/AdminPage'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { useAuthStore } from './store/authStore'
 import { authApi } from './api/auth'
 import { connectSocket } from './api/socket'
@@ -30,6 +32,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function GuestRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user)
   if (user) return <Navigate to="/" replace />
+  return <>{children}</>
+}
+
+function AdminGuard({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user)
+  if (!user?.isAdmin) return <Navigate to="/" replace />
   return <>{children}</>
 }
 
@@ -71,7 +79,13 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
             <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+            <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
+            <Route path="/reset-password" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <AdminGuard><AdminPage /></AdminGuard>
+              </ProtectedRoute>
+            } />
             <Route path="/" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

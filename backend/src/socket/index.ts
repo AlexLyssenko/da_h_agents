@@ -92,8 +92,8 @@ export function initSocket(server: HttpServer): Server {
           io.to(`room:${payload.roomId}`).emit('message:new', { message });
 
           // Increment unread for other members
-          const room = `room:${payload.roomId}`;
-          const socketsInRoom = io.sockets.adapter.rooms.get(room);
+          // const room = `room:${payload.roomId}`;
+          // const socketsInRoom = io.sockets.adapter.rooms.get(room);
           // We can't easily iterate members here — notifications are best-effort
           // In production, you'd query room members and increment for offline ones
         } else if (payload.dialogId) {

@@ -4,7 +4,7 @@ import { getPresence } from './presence';
 
 const prisma = new PrismaClient();
 
-export async function sendFriendRequest(requesterId: string, username: string, message?: string) {
+export async function sendFriendRequest(requesterId: string, username: string, _message?: string) {
   const recipient = await prisma.user.findUnique({ where: { username } });
   if (!recipient) throw new AppError(404, 'User not found');
   if (recipient.id === requesterId) throw new AppError(400, 'Cannot send friend request to yourself');

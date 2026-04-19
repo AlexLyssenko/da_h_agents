@@ -43,7 +43,7 @@ export async function register(email: string, password: string, username: string
       passwordHash,
       presence: { create: { status: PresenceStatus.OFFLINE } },
     },
-    select: { id: true, username: true, email: true, createdAt: true },
+    select: { id: true, username: true, email: true, isAdmin: true, createdAt: true },
   });
   return user;
 }
@@ -74,7 +74,7 @@ export async function login(email: string, password: string, userAgent?: string,
     accessToken,
     refreshToken,
     sessionId: session.id,
-    user: { id: user.id, username: user.username, email: user.email },
+    user: { id: user.id, username: user.username, email: user.email, isAdmin: user.isAdmin },
   };
 }
 
@@ -107,7 +107,17 @@ export async function refreshTokens(refreshToken: string) {
     data: { token: newRefreshToken, lastSeen: new Date() },
   });
 
-  return { accessToken: newAccessToken, refreshToken: newRefreshToken, sessionId: session.id };
+  return {
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+    sessionId: session.id,
+    user: {
+      id: session.user.id,
+      username: session.user.username,
+      email: session.user.email,
+      isAdmin: session.user.isAdmin,
+    },
+  };
 }
 
 export async function logout(sessionId: string, userId: string) {

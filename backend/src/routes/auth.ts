@@ -78,7 +78,7 @@ router.post(
       sameSite: 'strict',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
-    res.json({ accessToken: result.accessToken, sessionId: result.sessionId });
+    res.json({ accessToken: result.accessToken, sessionId: result.sessionId, user: result.user });
   })
 );
 

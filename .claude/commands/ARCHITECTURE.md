@@ -63,6 +63,7 @@ model User {
   email         String    @unique
   username      String    @unique
   passwordHash  String
+  isAdmin       Boolean   @default(false)
   createdAt     DateTime  @default(now())
   sessions      Session[]
   ownedRooms    Room[]    @relation("RoomOwner")
@@ -195,7 +196,8 @@ model Attachment {
 | POST | /api/auth/login | Login, return access+refresh tokens |
 | POST | /api/auth/logout | Invalidate current session |
 | POST | /api/auth/refresh | Refresh access token |
-| POST | /api/auth/password/reset | Initiate password reset |
+| POST | /api/auth/password/reset | Initiate password reset (always 200, logs token to console) |
+| PUT | /api/auth/password/reset/confirm | Confirm reset — body: `{ token, newPassword }` |
 | PUT | /api/auth/password | Change password (authenticated) |
 | DELETE | /api/auth/account | Delete account |
 
@@ -252,6 +254,22 @@ model Attachment {
 |---|---|---|
 | POST | /api/attachments | Upload file (multipart) |
 | GET | /api/attachments/:id | Download file (auth required) |
+
+---
+
+## Shared Response Shapes
+
+### User object (returned by login, refresh, /api/users/me, and embedded in other responses)
+```ts
+{
+  id:        string   // cuid
+  username:  string
+  email:     string
+  isAdmin:   boolean  // app-level admin — gates the /admin route
+  createdAt: string   // ISO 8601
+}
+```
+> `passwordHash` must **never** appear in any API response.
 
 ---
 

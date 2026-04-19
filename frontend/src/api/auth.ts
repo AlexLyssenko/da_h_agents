@@ -14,7 +14,7 @@ export interface RegisterPayload {
 export interface AuthResponse {
   accessToken: string
   sessionId: string
-  user: { id: string; username: string; email: string }
+  user: { id: string; username: string; email: string; isAdmin: boolean }
 }
 
 export const authApi = {
@@ -34,4 +34,10 @@ export const authApi = {
 
   deleteAccount: (data: { password: string }) =>
     apiClient.delete('/api/auth/account', { data }).then((r) => r.data),
+
+  requestPasswordReset: (data: { email: string }) =>
+    apiClient.post('/api/auth/password/reset', data).then((r) => r.data),
+
+  confirmPasswordReset: (data: { token: string; newPassword: string }) =>
+    apiClient.put('/api/auth/password/reset/confirm', data).then((r) => r.data),
 }
