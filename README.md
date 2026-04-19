@@ -1,5 +1,6 @@
 DA hackton
 
+##  docker compose up --build
 ## Claude cli, Sonnet 4.6
 
 
