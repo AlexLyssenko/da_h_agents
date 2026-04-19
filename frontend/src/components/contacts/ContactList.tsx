@@ -49,6 +49,7 @@ export function ContactList() {
                 friendship={f}
                 isActive={isActive}
                 onClick={() => openDm(f)}
+                onRemove={() => declineOrCancel.mutate(f.friendshipId)}
               />
             )
           })}

@@ -35,7 +35,10 @@
       "Bash(npx ts-node-dev *)",
       "Bash(curl -s http://localhost:4000/health)",
       "Bash(npm create *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(docker compose build *)",
+      "Bash(docker compose up *)",
+      "Bash(docker compose *)"
     ]
   }
 }
