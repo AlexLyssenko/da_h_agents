@@ -109,7 +109,7 @@ export function RoomMembersPanel({ roomId, ownerId }: RoomMembersPanelProps) {
                     <button
                       onClick={() => {
                         const dialogId = buildDialogId(currentUser!.id, member.userId)
-                        setActiveChannel({ type: 'dialog', dialogId, userId: member.userId })
+                        setActiveChannel({ type: 'dialog', dialogId, userId: member.userId, username: member.username })
                         setContextMenu(null)
                       }}
                       className="w-full px-3 py-2 text-xs text-left text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]"
