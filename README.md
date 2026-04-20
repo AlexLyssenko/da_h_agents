@@ -6,11 +6,11 @@ DA hackton
 ### Part 1
 #### 1. Generated md-agent files for Backend and FrontEnd using web claude based on app requirements.
  - I should have better review agent files, I missed some features from the original spec.
- - I should have mentioned that I'am windows user and use Rancher desktop for Docker. 
+ - I should have mentioned that I am Windows user and use Rancher desktop for Docker. 
  - First, it was a waste of time to re-write md files for windows and Ranche, it was failling to run Rancher from claude cli. 
 #### 2. Switched prompt to use local DB no Docker. Decided to add docker functionality later.
 #### 3. During execution of FE and BE commands asked to mark done tasks, but claude didn't do it
-#### 4. After initial agent run FE and BE stared wiht registration;
+#### 4. After the initial agent run FE and BE stared with registration;
 #### 5 After some portion of cli interrogation rooms and messaged were fixed, reached the limit, waiting to refresh
 
 ### Part 2
