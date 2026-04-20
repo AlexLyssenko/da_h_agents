@@ -21,3 +21,6 @@ The next changes I tried to make using an agent orchestrator approach. That make
 
 
 ### fix wrong feature behavior is pain, infinite loop of burning tokens
+
+### app review
+https://github.com/AlexLyssenko/da_h_agents/blob/main/app_review/working_parts.md
